@@ -12,7 +12,7 @@ const upgradeSound = document.getElementById("upgradeSound");
 const bgMusic = document.getElementById("bgMusic");
 const muteButton = document.getElementById("muteButton");
 const volumeSlider = document.getElementById("volumeSlider");
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://spankmedaddy3beackend.onrender.com";
 
 function enableMusic() {
     bgMusic.volume = 0.5; // Set volume
