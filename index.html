@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spank Me Daddy 3</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1 id="game-title">Spank Me Daddy 3</h1>
+
+    <div id="game-container">
+        <div id="main-area">
+            <p>Spanks: <span id="spanksCount">0</span></p>
+            <p>Spanks Per Second (CPS): <span id="spsCount">0</span></p>
+            <div id="coinClickArea">
+                <img id="spank" src="assets/image.jpg" alt="Spank">
+                <div id="floatingNumbers"></div>
+            </div>
+        </div>
+
+        <div id="shop">
+            <h2>Upgrades</h2>
+            <button id="autoSpankButton">Buy Auto-Spanker (Cost: 10 spanks)</button>
+        </div>
+    </div>
+
+    <div id="audio-controls">
+        <button id="muteButton">🔊 Mute</button>
+        <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5">
+    </div>
+
+    <audio id="spankSound" src="assets/spank-click.mp3"></audio>
+    <audio id="upgradeSound" src="assets/buy-upgrade.mp3"></audio>
+    <audio id="bgMusic" src="assets/background-music.mp3" loop></audio>
+
+    <div id="leaderboard">
+        <h2>Leaderboard 🏆</h2>
+        <ol id="leaderboard-list"></ol>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

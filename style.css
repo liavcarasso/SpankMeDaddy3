@@ -1,0 +1,166 @@
+/* General Styling */
+.floating-text {
+    position: absolute;
+    color: yellow;
+    font-size: 20px;
+    font-weight: bold;
+    opacity: 1;
+    animation: floatUp 1s ease-out forwards;
+    pointer-events: none;
+}
+
+/* Floating animation */
+@keyframes floatUp {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-30px);
+        opacity: 0;
+    }
+}
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #1e1e1e;
+    color: white;
+    margin: 0;
+    padding: 0;
+}
+
+#game-title {
+    font-size: 60px;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+/* Game Layout */
+#game-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    margin-top: 40px;
+}
+
+/* Main Game Area */
+#main-area {
+    text-align: center;
+    background: #2a2a2a;
+    padding: 30px;
+    border-radius: 10px;
+    width: 400px;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+/* Clickable Coin */
+#spank {
+    width: 200px;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.2s;
+}
+
+#spank:active {
+    transform: scale(0.9);
+    box-shadow: 0 0 20px yellow;
+}
+
+#spankDisplay, #spsDisplay {
+    font-size: 24px;
+    margin: 10px 0;
+}
+
+/* Shop Panel */
+#shop {
+    background: #333;
+    padding: 30px;
+    border-radius: 10px;
+    width: 300px;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+/* Buttons */
+button {
+    padding: 15px;
+    font-size: 22px;
+    background-color: #ff9800;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 15px;
+    width: 100%;
+}
+
+button:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+}
+
+button:active {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+}
+
+/* Background Pulse */
+@keyframes backgroundPulse {
+    0% { background-color: #1e1e1e; }
+    50% { background-color: #252525; }
+    100% { background-color: #1e1e1e; }
+}
+
+body {
+    animation: backgroundPulse 5s infinite alternate;
+}
+
+#audio-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#muteButton {
+    background-color: #444;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+}
+
+#volumeSlider {
+    width: 100px;
+    cursor: pointer;
+}
+
+#leaderboard {
+    position: absolute;
+    top: 100px;
+    right: 10px;
+    width: 200px;
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+#leaderboard h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+#leaderboard-list {
+    list-style: none;
+    padding: 0;
+}
+
+#leaderboard-list li {
+    padding: 5px 0;
+    font-size: 14px;
+}
