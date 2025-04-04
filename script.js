@@ -14,6 +14,34 @@ const muteButton = document.getElementById("muteButton");
 const volumeSlider = document.getElementById("volumeSlider");
 const API_URL = "https://spankmedaddy3beackend.onrender.com";
 
+async function waitForServer() {
+    const loadingScreen = document.getElementById("loading-screen");
+
+    while (true) {
+        try {
+            const res = await fetch(`${API_URL}/leaderboard`, { method: "GET" });
+            if (res.ok) {
+                loadingScreen.style.display = "none";
+                break;
+            }
+        } catch (err) {
+            console.log("Server still waking up...");
+        }
+
+        // Wait 2 seconds before trying again
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+}
+
+// Start checking before running the rest of the game logic
+waitForServer().then(() => {
+    // Place everything else that should start after the server is ready here:
+    loadGame();
+    fetchLeaderboard();
+    setInterval(submitScore, 60000);
+});
+
+
 function enableMusic() {
     bgMusic.volume = 0.5; // Set volume
     bgMusic.play().catch(error => console.log("Autoplay blocked:", error));
@@ -22,8 +50,6 @@ function enableMusic() {
     document.removeEventListener("click", enableMusic);
 }
 document.addEventListener("click", enableMusic);
-
-
 
 const savedVolume = localStorage.getItem("bgMusicVolume");
 if (savedVolume !== null) {
