@@ -219,6 +219,50 @@ function updateDisplay() {
     autoSpankButton.disabled = spankCount < autoSCost;
 }
 
+document.getElementById("addFriendButton").addEventListener("click", async () => {
+    const playerName = localStorage.getItem("playerName");
+    const friendName = document.getElementById("friendNameInput").value.trim();
+
+    if (!friendName || friendName === playerName) {
+        alert("Please enter a valid name.");
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/add_friend`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ player_name: playerName, friend_name: friendName })
+        });
+
+        const result = await res.json();
+        alert(result.message);
+        loadFriends();
+    } catch (err) {
+        console.error("Error adding friend:", err);
+        alert("Something went wrong.");
+    }
+});
+
+async function loadFriends() {
+    const playerName = localStorage.getItem("playerName");
+    try {
+        const res = await fetch(`${API_URL}/friends/${playerName}`);
+        const friends = await res.json();
+
+        const list = document.getElementById("friendsList");
+        list.innerHTML = "";
+        friends.forEach(friend => {
+            const li = document.createElement("li");
+            li.textContent = `${friend.name}: ${friend.score}`;
+            list.appendChild(li);
+        });
+    } catch (err) {
+        console.error("Error loading friends:", err);
+    }
+}
+
+
 // Run auto-mining every second
 setInterval(autoSpank, 1000);
 loadGame()
