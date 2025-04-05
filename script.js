@@ -41,7 +41,6 @@ waitForServer().then(() => {
     setInterval(submitScore, 60000);
 });
 
-
 function enableMusic() {
     bgMusic.volume = 0.5; // Set volume
     bgMusic.play().catch(error => console.log("Autoplay blocked:", error));
@@ -100,6 +99,9 @@ function saveGame() {
     submitScore();
 }
 
+window.addEventListener('DOMContentLoaded', () => {
+    loadPendingRequests();
+});
 
 async function fetchLeaderboard() {
     try {
@@ -154,7 +156,6 @@ async function submitScore() {
         console.error("Error submitting score:", error);
     }
 }
-
 
 fetchLeaderboard();
 
@@ -262,6 +263,40 @@ async function loadFriends() {
     }
 }
 
+function loadPendingRequests() {
+    const playerName = localStorage.getItem('playerName');
+    if (!playerName) return;
+
+    fetch(`/get_friend_requests?username=${encodeURIComponent(playerName)}`)
+        .then(response => response.json())
+        .then(requests => {
+            const list = document.getElementById('pendingRequestsList');
+            list.innerHTML = ''; // Clear old requests
+
+            requests.forEach(sender => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${sender} wants to be your friend</span>
+                    <button onclick="respondToRequest('${sender}', true)">Accept</button>
+                    <button onclick="respondToRequest('${sender}', false)">Decline</button>
+                `;
+                list.appendChild(li);
+            });
+        });
+}
+
+function respondToRequest(senderName, accept) {
+    fetch('/respond_friend_request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender: senderName, receiver: localStorage.getItem('playerName'), accept })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        loadPendingRequests(); // refresh the request list
+    });
+}
 
 // Run auto-mining every second
 setInterval(autoSpank, 1000);
