@@ -119,12 +119,27 @@ async function fetchLeaderboard() {
 }
 
 async function submitScore() {
-    const playerName = localStorage.getItem("playerName") || prompt("Enter your name:");
-    localStorage.setItem("playerName", playerName);
+    let playerName = localStorage.getItem("playerName") || prompt("Enter your name:");
 
-    const data = { name: playerName, score: spankCount };
-
+    // Fetch current leaderboard to check for duplicates
     try {
+        const response = await fetch(`${API_URL}/leaderboard`);
+        const leaderboard = await response.json();
+
+        const nameExists = leaderboard.some(player => player.name === playerName);
+
+        if (nameExists) {
+            while (nameExists) {
+                playerName = prompt("This name is already taken! Please choose another:");
+                const duplicateCheck = leaderboard.some(player => player.name === playerName);
+                if (!duplicateCheck) break;
+            }
+        }
+
+        localStorage.setItem("playerName", playerName);
+
+        const data = { name: playerName, score: spankCount };
+
         await fetch(`${API_URL}/submit_score`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
