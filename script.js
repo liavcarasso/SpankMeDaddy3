@@ -119,25 +119,28 @@ async function fetchLeaderboard() {
 }
 
 async function submitScore() {
-    let playerName = localStorage.getItem("playerName") || prompt("Enter your name:");
+    let playerName = localStorage.getItem("playerName");
 
-    // Fetch current leaderboard to check for duplicates
     try {
         const response = await fetch(`${API_URL}/leaderboard`);
         const leaderboard = await response.json();
 
-        const nameExists = leaderboard.some(player => player.name === playerName);
+        // Ask for name if not already stored
+        if (!playerName || playerName === 'null') {
+            playerName = prompt("Enter your name:");
 
-        if (nameExists) {
+            // Check for duplicates before saving name
+            let nameExists = leaderboard.some(player => player.name === playerName);
+
             while (nameExists) {
                 playerName = prompt("This name is already taken! Please choose another:");
-                const duplicateCheck = leaderboard.some(player => player.name === playerName);
-                if (!duplicateCheck) break;
+                nameExists = leaderboard.some(player => player.name === playerName);
             }
+
+            localStorage.setItem("playerName", playerName); // only store it after it's confirmed unique
         }
 
-        localStorage.setItem("playerName", playerName);
-
+        // Now it's safe to submit the score
         const data = { name: playerName, score: spankCount };
 
         await fetch(`${API_URL}/submit_score`, {
@@ -151,6 +154,7 @@ async function submitScore() {
         console.error("Error submitting score:", error);
     }
 }
+
 
 fetchLeaderboard();
 
