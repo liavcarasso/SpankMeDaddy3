@@ -263,43 +263,48 @@ async function loadFriends() {
     }
 }
 
-function loadPendingRequests() {
-    const playerName = localStorage.getItem('playerName');
-    if (!playerName) return;
-
+function fetchPendingFriendRequests() {
     fetch(`${API_URL}/get_friend_requests?username=${encodeURIComponent(playerName)}`)
-        .then(response => response.json())
-        .then(requests => {
-            const list = document.getElementById('pendingRequestsList');
+        .then(res => res.json())
+        .then(data => {
+            const list = document.getElementById('pending-requests-list');
             list.innerHTML = ''; // Clear old requests
 
-            requests.forEach(sender => {
+            data.requests.forEach(sender => {
                 const li = document.createElement('li');
-                li.innerHTML = `
-                    <span>${sender} wants to be your friend</span>
-                    <button onclick="respondToRequest('${sender}', true)">Accept</button>
-                    <button onclick="respondToRequest('${sender}', false)">Decline</button>
-                `;
+                li.textContent = `${sender} `;
+
+                const acceptBtn = document.createElement('button');
+                acceptBtn.textContent = 'Accept';
+                acceptBtn.onclick = () => respondToRequest(sender, true, li);
+
+                const declineBtn = document.createElement('button');
+                declineBtn.textContent = 'Decline';
+                declineBtn.onclick = () => respondToRequest(sender, false, li);
+
+                li.appendChild(acceptBtn);
+                li.appendChild(declineBtn);
+
                 list.appendChild(li);
             });
         });
 }
 
-function respondToRequest(senderName, accept) {
+function respondToRequest(sender, accept, listItemElement) {
     fetch(`${API_URL}/respond_friend_request`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            sender: senderName,       // who sent the request
-            receiver: playerName,     // current player
-            accept: true              // or false if declining
+            sender: sender,
+            receiver: playerName,
+            accept: accept
         })
     })
-        .then(res => res.json())
-        .then(data => {
-            console.log(data.message);
-            // Optionally refresh UI
-        });
+    .then(res => res.json())
+    .then(data => {
+        console.log(data.message);
+        listItemElement.remove(); // Remove from list after responding
+    });
 }
 
 // Run auto-mining every second
