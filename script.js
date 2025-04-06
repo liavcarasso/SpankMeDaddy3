@@ -286,16 +286,20 @@ function loadPendingRequests() {
 }
 
 function respondToRequest(senderName, accept) {
-    fetch('/respond_friend_request', {
+    fetch(`${API_URL}/respond_friend_request`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sender: senderName, receiver: localStorage.getItem('playerName'), accept })
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            sender: senderName,       // who sent the request
+            receiver: playerName,     // current player
+            accept: true              // or false if declining
+        })
     })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        loadPendingRequests(); // refresh the request list
-    });
+        .then(res => res.json())
+        .then(data => {
+            console.log(data.message);
+            // Optionally refresh UI
+        });
 }
 
 // Run auto-mining every second
