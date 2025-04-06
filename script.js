@@ -267,7 +267,7 @@ function loadPendingRequests() {
     const playerName = localStorage.getItem('playerName');
     if (!playerName) return;
 
-    fetch(`/get_friend_requests?username=${encodeURIComponent(playerName)}`)
+    fetch(`${API_URL}/get_friend_requests?username=${encodeURIComponent(playerName)}`)
         .then(response => response.json())
         .then(requests => {
             const list = document.getElementById('pendingRequestsList');
