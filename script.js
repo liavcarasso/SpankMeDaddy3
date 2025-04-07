@@ -100,7 +100,8 @@ function saveGame() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    loadPendingRequests();
+    loadGame();
+    fetchPendingFriendRequests(); // Load pending requests on page load
 });
 
 async function fetchLeaderboard() {
@@ -130,8 +131,6 @@ async function submitScore() {
         // Ask for name if not already stored
         if (!playerName || playerName === 'null') {
             playerName = prompt("Enter your name:");
-
-            // Check for duplicates before saving name
             let nameExists = leaderboard.some(player => player.name === playerName);
 
             while (nameExists) {
@@ -139,12 +138,10 @@ async function submitScore() {
                 nameExists = leaderboard.some(player => player.name === playerName);
             }
 
-            localStorage.setItem("playerName", playerName); // only store it after it's confirmed unique
+            localStorage.setItem("playerName", playerName);
         }
 
-        // Now it's safe to submit the score
         const data = { name: playerName, score: spankCount };
-
         await fetch(`${API_URL}/submit_score`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -152,6 +149,7 @@ async function submitScore() {
         });
 
         fetchLeaderboard(); // Refresh leaderboard
+        fetchPendingFriendRequests(); // Load pending requests after name is confirmed
     } catch (error) {
         console.error("Error submitting score:", error);
     }
@@ -247,6 +245,8 @@ document.getElementById("addFriendButton").addEventListener("click", async () =>
 
 async function loadFriends() {
     const playerName = localStorage.getItem("playerName");
+    if (!playerName) return;
+
     try {
         const res = await fetch(`${API_URL}/friends/${playerName}`);
         const friends = await res.json();
@@ -258,12 +258,17 @@ async function loadFriends() {
             li.textContent = `${friend.name}: ${friend.score}`;
             list.appendChild(li);
         });
+
+        fetchPendingFriendRequests(); // Load pending requests after friends are loaded
     } catch (err) {
         console.error("Error loading friends:", err);
     }
 }
 
 function fetchPendingFriendRequests() {
+    const playerName = localStorage.getItem("playerName"); // Define playerName here
+    if (!playerName) return; // Exit if playerName is not available
+
     fetch(`${API_URL}/get_friend_requests?username=${encodeURIComponent(playerName)}`)
         .then(res => res.json())
         .then(data => {
