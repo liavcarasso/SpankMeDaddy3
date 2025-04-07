@@ -102,6 +102,7 @@ function saveGame() {
 window.addEventListener('DOMContentLoaded', () => {
     loadGame();
     fetchPendingFriendRequests(); // Load pending requests on page load
+    loadFriends();
 });
 
 async function fetchLeaderboard() {
