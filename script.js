@@ -128,7 +128,6 @@ async function submitScore() {
         const response = await fetch(`${API_URL}/leaderboard`);
         const leaderboard = await response.json();
 
-        // Ask for name if not already stored
         if (!playerName || playerName === 'null') {
             playerName = prompt("Enter your name:");
             let nameExists = leaderboard.some(player => player.name === playerName);
@@ -148,7 +147,7 @@ async function submitScore() {
             body: JSON.stringify(data),
         });
 
-        fetchLeaderboard(); // Refresh leaderboard
+        fetchLeaderboard();
         fetchPendingFriendRequests(); // Load pending requests after name is confirmed
     } catch (error) {
         console.error("Error submitting score:", error);
@@ -266,7 +265,7 @@ async function loadFriends() {
 }
 
 function fetchPendingFriendRequests() {
-    const playerName = localStorage.getItem("playerName"); // Define playerName here
+    const playerName = localStorage.getItem("playerName"); // Retrieve playerName from localStorage
     if (!playerName) return; // Exit if playerName is not available
 
     fetch(`${API_URL}/get_friend_requests?username=${encodeURIComponent(playerName)}`)
@@ -275,7 +274,7 @@ function fetchPendingFriendRequests() {
             const list = document.getElementById('pending-requests-list');
             list.innerHTML = ''; // Clear old requests
 
-            data.requests.forEach(sender => {
+            data.forEach(sender => { // Use data directly since it's an array of senders
                 const li = document.createElement('li');
                 li.textContent = `${sender} `;
 
@@ -292,10 +291,14 @@ function fetchPendingFriendRequests() {
 
                 list.appendChild(li);
             });
-        });
+        })
+        .catch(err => console.error("Error fetching friend requests:", err));
 }
 
 function respondToRequest(sender, accept, listItemElement) {
+    const playerName = localStorage.getItem("playerName"); // Retrieve playerName from localStorage
+    if (!playerName) return;
+
     fetch(`${API_URL}/respond_friend_request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -309,9 +312,13 @@ function respondToRequest(sender, accept, listItemElement) {
     .then(data => {
         console.log(data.message);
         listItemElement.remove(); // Remove from list after responding
-    });
+        fetchPendingFriendRequests(); // Refresh pending requests
+    })
+    .catch(err => console.error("Error responding to friend request:", err));
 }
 
-// Run auto-mining every second
+// Run auto-spank every second
 setInterval(autoSpank, 1000);
+// Refresh pending requests every 30 seconds
+setInterval(fetchPendingFriendRequests, 30000);
 loadGame()
