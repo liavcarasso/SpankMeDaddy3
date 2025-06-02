@@ -38,7 +38,6 @@ waitForServer().then(() => {
     // Place everything else that should start after the server is ready here:
     loadGame();
     fetchLeaderboard();
-    setInterval(submitScore, 60000);
 });
 
 function enableMusic() {
@@ -96,7 +95,6 @@ function saveGame() {
     localStorage.setItem("sps", sps);
     localStorage.setItem("autoSCost", autoSCost);
     localStorage.setItem("spankCount", spankCount);
-    submitScore();
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -122,51 +120,62 @@ async function fetchLeaderboard() {
     }
 }
 
-async function submitScore() {
-    let playerName = localStorage.getItem("playerName");
 
-    try {
-        const response = await fetch(`${API_URL}/leaderboard`);
-        const leaderboard = await response.json();
+let actionQueue = [];
 
-        if (!playerName || playerName === 'null') {
-            playerName = prompt("Enter your name:");
-            let nameExists = leaderboard.some(player => player.name === playerName);
-
-            while (nameExists) {
-                playerName = prompt("This name is already taken! Please choose another:");
-                nameExists = leaderboard.some(player => player.name === playerName);
-            }
-
-            localStorage.setItem("playerName", playerName);
-        }
-
-        const data = { name: playerName, score: spankCount };
-        await fetch(`${API_URL}/submit_score`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-
-        fetchLeaderboard();
-        fetchPendingFriendRequests(); // Load pending requests after name is confirmed
-    } catch (error) {
-        console.error("Error submitting score:", error);
-    }
+function queueAction(type, data = {}) {
+    actionQueue.push({
+        type,
+        data,
+        timestamp: Date.now()
+    });
 }
 
-fetchLeaderboard();
+setInterval(() => {
+    if (actionQueue.length === 0) return;
+
+    const playerName = localStorage.getItem("playerName");
+    if (!playerName) return;
+
+    const payload = {
+        name: playerName,
+        actions: [...actionQueue]
+    };
+
+    fetch(`${API_URL}/game/actions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+
+    actionQueue = [];
+}, 5000);
 
 // Click event: Increase coins
-spank.addEventListener("click", function() {
+spank.addEventListener("click", function(event) {
     spankCount++;
     updateDisplay();
     saveGame();
     showFloatingText("+1", event.clientX, event.clientY);
+    queueAction("click");
 
-    spankSound.currentTime = 0; // Reset sound (avoid delays)
-    spankSound.volume = 0.1
+    spankSound.currentTime = 0;
+    spankSound.volume = 0.1;
     spankSound.play();
+});
+
+autoSpankButton.addEventListener("click", function() {
+    if (spankCount >= autoSCost) {
+        spankCount -= autoSCost;
+        sps += 1;
+        autoSCost = Math.floor(autoSCost * 5.5);
+        updateDisplay();
+        saveGame();
+        queueAction("buy_upgrade", { upgrade: "auto_spank" });
+
+        upgradeSound.currentTime = 0;
+        upgradeSound.play();
+    }
 });
 
 function showFloatingText(text, x, y) {
