@@ -1,7 +1,6 @@
 // Select elements
 let spankCount = 0;
 let sps = 0; // Coins per second
-let autoSCost = 10
 const spankDisplay = document.getElementById("spanksCount");
 const spsDisplay = document.getElementById("spsCount");
 const spank = document.getElementById("spank");
@@ -94,7 +93,6 @@ function saveGame() {
     localStorage.setItem("spanksCount", spankCount);
     localStorage.setItem("sps", sps);
     localStorage.setItem("autoSCost", autoSCost);
-    localStorage.setItem("spankCount", spankCount);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -178,10 +176,13 @@ spank.addEventListener("click", function(event) {
 });
 
 autoSpankButton.addEventListener("click", function() {
-    if (spankCount >= autoSCost) {
-        spankCount -= autoSCost;
+    let price = (Math.pow(10*5.5,sps+1))
+    if (sps != 0){
+        price = price/(10*sps)
+    }
+    if (spankCount >= price) {
+        spankCount -= price;
         sps += 1;
-        autoSCost = Math.floor(autoSCost * 5.5);
         updateDisplay();
         saveGame();
         queueAction("buy_upgrade", { upgrade: "auto_spank" });
@@ -208,21 +209,6 @@ function showFloatingText(text, x, y) {
     }, 1000);
 }
 
-
-// Buy Auto-Miner
-autoSpankButton.addEventListener("click", function() {
-    if (spankCount >= autoSCost) {
-        spankCount -= autoSCost;
-        sps += 1; // Each Auto-Miner adds 1 CPS
-        autoSCost = Math.floor(autoSCost * 5.5);
-        autoSpankButton.textContent = `Buy Auto-Spanker (Cost: ${autoSCost} Spanks)`;
-        updateDisplay();
-        saveGame();
-
-        upgradeSound.currentTime = 0;
-        upgradeSound.play();
-    }
-});
 
 // Auto-mining function
 function autoSpank() {
