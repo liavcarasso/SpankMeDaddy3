@@ -99,7 +99,7 @@ function saveGame() {
 
 window.addEventListener('DOMContentLoaded', () => {
     loadGame();
-    fetchPlayerScore()
+    fetchPlayerData()
     fetchPendingFriendRequests(); // Load pending requests on page load
     loadFriends();
 });
@@ -121,20 +121,18 @@ async function fetchLeaderboard() {
     }
 }
 
-async function fetchPlayerScore() {
+async function fetchPlayerData() {
     const playerName = localStorage.getItem("playerName");
     if (!playerName) return;
 
-    try {
-        const res = await fetch(`${API_URL}/player_score/${encodeURIComponent(playerName)}`);
-        const data = await res.json();
+    const res = await fetch(`${API_URL}/player_data/${encodeURIComponent(playerName)}`);
+    const data = await res.json();
 
-        spankCount = data.score;
-        updateDisplay(); // עדכן את התצוגה במסך
-    } catch (err) {
-        console.error("Error fetching player score:", err);
-    }
+    spankCount = data.score;
+    sps = data.sps;
+    updateDisplay();
 }
+
 
 let actionQueue = [];
 
