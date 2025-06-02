@@ -177,7 +177,7 @@ spank.addEventListener("click", function(event) {
 
 autoSpankButton.addEventListener("click", function() {
     let price = (Math.pow(10*5.5,sps+1))
-    if (sps != 0){
+    if (sps !== 0){
         price = price/(10*sps)
     }
     if (spankCount >= price) {
@@ -209,6 +209,27 @@ function showFloatingText(text, x, y) {
     }, 1000);
 }
 
+autoSpankButton.addEventListener("click", function() {
+    let price = checkPrice()
+    if (spankCount >= price) {
+        spankCount -= price;
+        sps += 1; // Each Auto-Miner adds 1 CPS
+        autoSpankButton.textContent = `Buy Auto-Spanker (Cost: ${checkPrice()} Spanks)`;
+        updateDisplay();
+        saveGame();
+
+        upgradeSound.currentTime = 0;
+        upgradeSound.play();
+    }
+});
+
+function checkPrice(){
+    let price = (Math.pow(10*5.5,sps+1))
+    if (sps !== 0){
+        price = price/(10*sps)
+    }
+    return price
+}
 
 // Auto-mining function
 function autoSpank() {
@@ -221,9 +242,9 @@ function autoSpank() {
 function updateDisplay() {
     spankDisplay.textContent = spankCount;
     spsDisplay.textContent = sps;
-    autoSpankButton.textContent = `Buy Auto-Spanker (Cost: ${autoSCost} Spanks)`;
+    autoSpankButton.textContent = `Buy Auto-Spanker (Cost: ${checkPrice()} Spanks)`;
     // Disable button if not enough coins
-    autoSpankButton.disabled = spankCount < autoSCost;
+    autoSpankButton.disabled = spankCount < checkPrice();
 }
 
 document.getElementById("addFriendButton").addEventListener("click", async () => {
