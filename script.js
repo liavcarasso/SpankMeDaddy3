@@ -45,11 +45,9 @@ async function registerIfNeeded() {
         const data = await res.json();
         playerToken = data.token;
         localStorage.setItem("playerToken", playerToken);
-        localStorage.setItem("playerName", name); // לשימוש תצוגתי
+        localStorage.setItem("playerName", name);
     }
 }
-
-
 
 // ON START
 registerIfNeeded().then(() => {
@@ -100,10 +98,6 @@ volumeSlider.addEventListener("input", function() {
 });
 
 
-function saveGame() {
-    localStorage.setItem("spanksCount", spankCount);
-    localStorage.setItem("sps", sps);
-}
 
 window.addEventListener('DOMContentLoaded', () => {
     fetchPlayerData()
@@ -151,7 +145,7 @@ function queueAction(type, data = {}) {
     });
 }
 
-setInterval(() => {
+setInterval(async () => {
     if (actionQueue.length === 0 || !playerToken) return;
 
     const payload = {
@@ -159,23 +153,29 @@ setInterval(() => {
         actions: [...actionQueue]
     };
 
-    const playerName = localStorage.getItem("playerName");
-    if (!playerName) return;
+    try {
+        const res = await fetch(`${API_URL}/game/actions`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
 
-    fetch(`${API_URL}/game/actions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    });
+        if (!res.ok) {
+            const errorData = await res.json();
+            console.error("Failed to send actions:", errorData);
+        }
+    } catch (err) {
+        console.error("Network error sending actions:", err);
+    }
 
     actionQueue = [];
 }, 5000);
+
 
 // Click event: Increase coins
 spank.addEventListener("click", function(event) {
     spankCount++;
     updateDisplay();
-    saveGame();
     showFloatingText("+1", event.clientX, event.clientY);
     queueAction("click");
 
@@ -194,7 +194,6 @@ autoSpankButton.addEventListener("click", function() {
         sps += 1;
 
         updateDisplay();
-        saveGame();
         queueAction("buy_upgrade", { upgrade: "auto_spank" });
 
         upgradeSound.currentTime = 0;
@@ -225,13 +224,6 @@ function checkPrice(){
         price = price/(10*sps)
     }
     return price
-}
-
-// Auto-mining function
-function autoSpank() {
-    spankCount += sps;
-    updateDisplay();
-    saveGame();
 }
 
 // Update coin display
@@ -343,8 +335,6 @@ function respondToRequest(sender, accept, listItemElement) {
     .catch(err => console.error("Error responding to friend request:", err));
 }
 
-// Run auto-spank every second
-setInterval(autoSpank, 1000);
 // Refresh pending requests every 30 seconds
 setInterval(fetchPendingFriendRequests, 30000);
 
