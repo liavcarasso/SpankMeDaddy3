@@ -1,6 +1,7 @@
 // Select elements
 let spankCount = 0;
 let sps = 0; // Coins per second
+let playerToken = localStorage.getItem("playerToken");
 const spankDisplay = document.getElementById("spanksCount");
 const spsDisplay = document.getElementById("spsCount");
 const spank = document.getElementById("spank");
@@ -32,11 +33,32 @@ async function waitForServer() {
     }
 }
 
-// Start checking before running the rest of the game logic
-waitForServer().then(() => {
-    // Place everything else that should start after the server is ready here:
-    loadGame();
-    fetchLeaderboard();
+async function registerIfNeeded() {
+    if (!playerToken) {
+        const name = prompt("Enter your name:");
+        const res = await fetch(`${API_URL}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name })
+        });
+
+        const data = await res.json();
+        playerToken = data.token;
+        localStorage.setItem("playerToken", playerToken);
+        localStorage.setItem("playerName", name); // לשימוש תצוגתי
+    }
+}
+
+
+
+// ON START
+registerIfNeeded().then(() => {
+    waitForServer().then(() => {
+        fetchPlayerData()
+        fetchLeaderboard();
+        fetchPendingFriendRequests();
+        loadFriends();
+    });
 });
 
 function enableMusic() {
@@ -77,26 +99,13 @@ volumeSlider.addEventListener("input", function() {
     localStorage.setItem("bgMusicVolume", volumeSlider.value);
 });
 
-function loadGame() {
-    const savedSpanks = localStorage.getItem("spanksCount");
-    const savedSPS = localStorage.getItem("sps");
-    const savedAutoCost = localStorage.getItem("autoSCost");
-
-    if (savedSpanks !== null) spankCount = parseInt(savedSpanks);
-    if (savedSPS !== null) sps = parseInt(savedSPS);
-    if (savedAutoCost !== null) autoSCost = parseInt(savedAutoCost);
-
-    updateDisplay();
-}
 
 function saveGame() {
     localStorage.setItem("spanksCount", spankCount);
     localStorage.setItem("sps", sps);
-    localStorage.setItem("autoSCost", autoSCost);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    loadGame();
     fetchPlayerData()
     fetchPendingFriendRequests(); // Load pending requests on page load
     loadFriends();
@@ -143,15 +152,15 @@ function queueAction(type, data = {}) {
 }
 
 setInterval(() => {
-    if (actionQueue.length === 0) return;
+    if (actionQueue.length === 0 || !playerToken) return;
+
+    const payload = {
+        token: playerToken,
+        actions: [...actionQueue]
+    };
 
     const playerName = localStorage.getItem("playerName");
     if (!playerName) return;
-
-    const payload = {
-        name: playerName,
-        actions: [...actionQueue]
-    };
 
     fetch(`${API_URL}/game/actions`, {
         method: "POST",
@@ -183,6 +192,7 @@ autoSpankButton.addEventListener("click", function() {
     if (spankCount >= price) {
         spankCount -= price;
         sps += 1;
+
         updateDisplay();
         saveGame();
         queueAction("buy_upgrade", { upgrade: "auto_spank" });
@@ -208,20 +218,6 @@ function showFloatingText(text, x, y) {
         floatingText.remove();
     }, 1000);
 }
-
-autoSpankButton.addEventListener("click", function() {
-    let price = checkPrice()
-    if (spankCount >= price) {
-        spankCount -= price;
-        sps += 1; // Each Auto-Miner adds 1 CPS
-        autoSpankButton.textContent = `Buy Auto-Spanker (Cost: ${checkPrice()} Spanks)`;
-        updateDisplay();
-        saveGame();
-
-        upgradeSound.currentTime = 0;
-        upgradeSound.play();
-    }
-});
 
 function checkPrice(){
     let price = (Math.pow(10*5.5,sps+1))
@@ -351,4 +347,4 @@ function respondToRequest(sender, accept, listItemElement) {
 setInterval(autoSpank, 1000);
 // Refresh pending requests every 30 seconds
 setInterval(fetchPendingFriendRequests, 30000);
-loadGame()
+
