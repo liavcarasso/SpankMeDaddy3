@@ -148,14 +148,16 @@ setInterval(async () => {
     if (actionQueue.length === 0 || !playerToken) return;
 
     const payload = {
-        token: playerToken,
         actions: [...actionQueue]
     };
 
     try {
         const res = await fetch(`${API_URL}/game/actions`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + playerToken
+            },
             body: JSON.stringify(payload)
         });
 
@@ -337,3 +339,4 @@ function respondToRequest(sender, accept, listItemElement) {
 // Refresh pending requests every 30 seconds
 setInterval(fetchPendingFriendRequests, 30000);
 
+setInterval(score += sps, 1000)
