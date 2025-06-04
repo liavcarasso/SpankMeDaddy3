@@ -123,10 +123,9 @@ async function fetchLeaderboard() {
 }
 
 async function fetchPlayerData() {
-    const playerName = localStorage.getItem("playerName");
-    if (!playerName) return;
+    if (!playerToken) return;
 
-    const res = await fetch(`${API_URL}/player_data/${encodeURIComponent(playerName)}`);
+    const res = await fetch(`${API_URL}/player_data/${playerToken}`);
     const data = await res.json();
 
     spankCount = data.score;
