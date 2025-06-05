@@ -34,7 +34,7 @@ async function waitForServer() {
 }
 
 async function registerIfNeeded() {
-    if (!playerToken || playerToken === 'undefined') {
+    if (!checkToken()) {
         const name = prompt("Enter your name:");
         const res = await fetch(`${API_URL}/register`, {
             method: "POST",
@@ -176,7 +176,24 @@ setInterval(function() {
   updateDisplay()
 }, 1000);
 
-// Click event: Increase coins
+
+window.addEventListener("beforeunload", () => {
+    if (!playerToken) return;
+
+    const payload = {
+        token: "Bearer " + playerToken
+    };
+
+    const blob = new Blob(
+        [JSON.stringify(payload)],
+        { type: 'application/json' }
+    );
+
+    navigator.sendBeacon(`${API_URL}/game/updatesps`, blob);
+});
+
+
+
 spank.addEventListener("click", function(event) {
     spankCount++;
     updateDisplay();
@@ -221,6 +238,23 @@ function showFloatingText(text, x, y) {
         floatingText.remove();
     }, 1000);
 }
+
+async function checkToken() {
+
+    const res = await fetch(`${API_URL}/token_valid`, {
+        method: "GET",
+        headers: {
+            "Authorization": "Bearer " + playerToken
+        }
+    });
+    text = await res.text();
+    if (text == "true")
+        return true 
+    return false
+
+}
+
+
 
 function checkPrice(){
     let price = (Math.pow(10*5.5,sps+1))
