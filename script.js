@@ -338,4 +338,4 @@ function respondToRequest(sender, accept, listItemElement) {
 // Refresh pending requests every 30 seconds
 setInterval(fetchPendingFriendRequests, 30000);
 
-setInterval(score += sps, 1000)
+setInterval(spankCount += sps, 1000)
