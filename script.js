@@ -139,8 +139,7 @@ let actionQueue = [];
 function queueAction(type, data = {}) {
     actionQueue.push({
         type,
-        data,
-        timestamp: Date.now()
+        data
     });
 }
 
