@@ -34,7 +34,7 @@ async function waitForServer() {
 }
 
 async function registerIfNeeded() {
-    if (!playerToken) {
+    if (!playerToken || playerToken === 'undefined') {
         const name = prompt("Enter your name:");
         const res = await fetch(`${API_URL}/register`, {
             method: "POST",
