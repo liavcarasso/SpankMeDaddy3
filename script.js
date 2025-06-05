@@ -250,9 +250,7 @@ async function checkToken() {
     });
 
     const text = await res.text();
-    console.log("token_valid response:", text);
-
-    return text === "true";
+    return text.trim() === "true";
 }
 
 
