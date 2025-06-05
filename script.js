@@ -34,7 +34,8 @@ async function waitForServer() {
 }
 
 async function registerIfNeeded() {
-    if (!checkToken()) {
+    const isValid = await checkToken();
+    if (!isValid) {
         const name = prompt("Enter your name:");
         const res = await fetch(`${API_URL}/register`, {
             method: "POST",
@@ -48,6 +49,7 @@ async function registerIfNeeded() {
         localStorage.setItem("playerName", name);
     }
 }
+
 
 // ON START
 registerIfNeeded().then(() => {
@@ -249,12 +251,10 @@ async function checkToken() {
     });
     text = await res.text();
     if (text == "true")
-        return true 
+        return true
     return false
 
 }
-
-
 
 function checkPrice(){
     let price = (Math.pow(10*5.5,sps+1))
