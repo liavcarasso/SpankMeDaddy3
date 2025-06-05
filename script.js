@@ -173,6 +173,7 @@ setInterval(async () => {
 
 setInterval(function() {
   spankCount += sps;
+  updateDisplay()
 }, 1000);
 
 // Click event: Increase coins
