@@ -242,19 +242,19 @@ function showFloatingText(text, x, y) {
 }
 
 async function checkToken() {
-
     const res = await fetch(`${API_URL}/token_valid`, {
         method: "GET",
         headers: {
             "Authorization": "Bearer " + playerToken
         }
     });
-    text = await res.text();
-    if (text == "true")
-        return true
-    return false
 
+    const text = await res.text();
+    console.log("token_valid response:", text);
+
+    return text === "true";
 }
+
 
 function checkPrice(){
     let price = (Math.pow(10*5.5,sps+1))
