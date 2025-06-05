@@ -171,6 +171,9 @@ setInterval(async () => {
     actionQueue = [];
 }, 5000);
 
+setInterval(function() {
+  spankCount += sps;
+}, 1000);
 
 // Click event: Increase coins
 spank.addEventListener("click", function(event) {
@@ -338,4 +341,4 @@ function respondToRequest(sender, accept, listItemElement) {
 // Refresh pending requests every 30 seconds
 setInterval(fetchPendingFriendRequests, 30000);
 
-setInterval(spankCount += sps, 1000)
+
