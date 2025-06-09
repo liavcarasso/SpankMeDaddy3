@@ -2,6 +2,7 @@
 let spankCount = 0;
 let sps = 0; // Coins per second
 let playerToken = localStorage.getItem("playerToken");
+let playerName = localStorage.getItem("playerName")
 const spankDisplay = document.getElementById("spanksCount");
 const spsDisplay = document.getElementById("spsCount");
 const spank = document.getElementById("spank");
@@ -16,12 +17,19 @@ const API_URL = "https://spankmedaddy3beackend.onrender.com";
 
 async function waitForServer() {
     const loadingScreen = document.getElementById("loading-screen");
+    const gameContainer = document.getElementById('game-container'); // Get game container
 
     while (true) {
         try {
             const res = await fetch(`${API_URL}/leaderboard`, { method: "GET" });
             if (res.ok) {
-                loadingScreen.style.display = "none";
+                // Fade out loading screen and reveal game container
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    gameContainer.classList.remove('scale-95', 'opacity-0');
+                    gameContainer.classList.add('scale-100', 'opacity-100');
+                }, 500); // Match CSS transition duration
                 break;
             }
         } catch (err) {
@@ -36,7 +44,13 @@ async function waitForServer() {
 async function registerIfNeeded() {
     const isValid = await checkToken();
     if (!isValid) {
-        const name = prompt("Enter your name:");
+        // Use a custom modal or element for name input instead of prompt()
+        // For now, keeping prompt as per original logic, but a custom UI is recommended.
+        const name = prompt(`Enter your name:`);
+        if (!name) { // Handle case where user cancels prompt
+            alert("Name is required to play!");
+            return registerIfNeeded(); // Re-prompt
+        }
         const res = await fetch(`${API_URL}/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -45,6 +59,7 @@ async function registerIfNeeded() {
 
         const data = await res.json();
         playerToken = data.token;
+        playerName = name;
         localStorage.setItem("playerToken", playerToken);
         localStorage.setItem("playerName", name);
     }
@@ -116,7 +131,7 @@ async function fetchLeaderboard() {
         leaderboardList.innerHTML = "";
         leaderboard.forEach((player, index) => {
             const listItem = document.createElement("li");
-            listItem.textContent = `#${index + 1} ${player.name}: ${player.score}`;
+            listItem.innerHTML = `<span class="font-bold text-gray-100">#${index + 1} ${player.name}:</span> <span class="text-yellow-400">${player.score}</span>`;
             leaderboardList.appendChild(listItem);
         });
     } catch (error) {
@@ -165,6 +180,8 @@ setInterval(async () => {
         if (!res.ok) {
             const errorData = await res.json();
             console.error("Failed to send actions:", errorData);
+            // Implement a custom message box instead of alert for better UX
+            // alert(`Error: ${errorData.detail || "Unknown error"}`);
         }
     } catch (err) {
         console.error("Network error sending actions:", err);
@@ -177,7 +194,6 @@ setInterval(function() {
   spankCount += sps;
   updateDisplay()
 }, 1000);
-
 
 window.addEventListener("beforeunload", () => {
     if (!playerToken) return;
@@ -249,8 +265,7 @@ async function checkToken() {
         }
     });
 
-    const text = await res.text();
-    return text.trim() === "true";
+    return res
 }
 
 
@@ -266,17 +281,19 @@ function checkPrice(){
 function updateDisplay() {
     spankDisplay.textContent = spankCount;
     spsDisplay.textContent = sps;
-    autoSpankButton.textContent = `Buy Auto-Spanker (Cost: ${checkPrice()} Spanks)`;
+    autoSpankButton.textContent = `קנה מנפיק הצלפות אוטומטי (עלות: ${Math.round(checkPrice())} הצלפות)`;
     // Disable button if not enough coins
     autoSpankButton.disabled = spankCount < checkPrice();
 }
 
 document.getElementById("addFriendButton").addEventListener("click", async () => {
     const playerName = localStorage.getItem("playerName");
-    const friendName = document.getElementById("friendNameInput").value.trim();
+    const friendNameInput = document.getElementById("friendNameInput");
+    const friendName = friendNameInput.value.trim();
 
     if (!friendName || friendName === playerName) {
-        alert("Please enter a valid name.");
+        // Use a custom message box instead of alert
+        showCustomAlert("אנא הזן שם חוקי.");
         return;
     }
 
@@ -288,11 +305,16 @@ document.getElementById("addFriendButton").addEventListener("click", async () =>
         });
 
         const result = await res.json();
-        alert(result.message);
+        // Use a custom message box instead of alert
+        showCustomAlert(result.message);
+        if (res.ok) { // Clear input only if successful
+            friendNameInput.value = "";
+        }
         loadFriends();
     } catch (err) {
         console.error("Error adding friend:", err);
-        alert("Something went wrong.");
+        // Use a custom message box instead of alert
+        showCustomAlert("משהו השתבש.");
     }
 });
 
@@ -308,7 +330,7 @@ async function loadFriends() {
         list.innerHTML = "";
         friends.forEach(friend => {
             const li = document.createElement("li");
-            li.textContent = `${friend.name}: ${friend.score}`;
+            li.innerHTML = `<span class="font-bold text-gray-100">${friend.name}:</span> <span class="text-green-400">${friend.score}</span>`;
             list.appendChild(li);
         });
 
@@ -328,23 +350,26 @@ function fetchPendingFriendRequests() {
             const list = document.getElementById('pending-requests-list');
             list.innerHTML = ''; // Clear old requests
 
-            data.forEach(sender => { // Use data directly since it's an array of senders
-                const li = document.createElement('li');
-                li.textContent = `${sender} `;
+            if (data.length === 0) {
+                list.innerHTML = '<li class="text-gray-400">אין בקשות חברות ממתינות.</li>';
+            } else {
+                data.forEach(sender => { // Use data directly since it's an array of senders
+                    const li = document.createElement('li');
+                    li.classList.add('flex', 'items-center', 'justify-between', 'bg-gray-800', 'p-3', 'rounded-lg', 'shadow-md', 'mb-2');
+                    li.innerHTML = `
+                        <span class="font-semibold">${sender}</span>
+                        <div class="flex gap-2">
+                            <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200 accept-btn">אשר</button>
+                            <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200 decline-btn">דחה</button>
+                        </div>
+                    `;
 
-                const acceptBtn = document.createElement('button');
-                acceptBtn.textContent = 'Accept';
-                acceptBtn.onclick = () => respondToRequest(sender, true, li);
+                    li.querySelector('.accept-btn').onclick = () => respondToRequest(sender, true, li);
+                    li.querySelector('.decline-btn').onclick = () => respondToRequest(sender, false, li);
 
-                const declineBtn = document.createElement('button');
-                declineBtn.textContent = 'Decline';
-                declineBtn.onclick = () => respondToRequest(sender, false, li);
-
-                li.appendChild(acceptBtn);
-                li.appendChild(declineBtn);
-
-                list.appendChild(li);
-            });
+                    list.appendChild(li);
+                });
+            }
         })
         .catch(err => console.error("Error fetching friend requests:", err));
 }
@@ -365,13 +390,46 @@ function respondToRequest(sender, accept, listItemElement) {
     .then(res => res.json())
     .then(data => {
         console.log(data.message);
+        showCustomAlert(data.message); // Show confirmation message
         listItemElement.remove(); // Remove from list after responding
         fetchPendingFriendRequests(); // Refresh pending requests
+        loadFriends(); // Refresh friends list as well
     })
     .catch(err => console.error("Error responding to friend request:", err));
 }
 
 // Refresh pending requests every 30 seconds
 setInterval(fetchPendingFriendRequests, 30000);
+setInterval(fetchLeaderboard, 10000);
 
 
+// Custom Alert / Message Box function (replaces native alert())
+function showCustomAlert(message) {
+    const alertBox = document.createElement('div');
+    alertBox.classList.add('fixed', 'top-1/2', 'left-1/2', '-translate-x-1/2', '-translate-y-1/2', 'bg-gray-800', 'p-6', 'rounded-lg', 'shadow-xl', 'z-[10000]', 'flex', 'flex-col', 'items-center', 'gap-4', 'border', 'border-gray-600', 'transition-all', 'duration-300', 'transform', ' ' );
+    alertBox.style.opacity = '0'; // Start invisible
+    alertBox.style.transform = 'translate(-50%, -50%) scale(0.8)'; // Start smaller
+
+    const messageText = document.createElement('p');
+    messageText.textContent = message;
+    messageText.classList.add('text-white', 'text-lg', 'font-semibold', 'text-center');
+
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'אישור';
+    closeButton.classList.add('px-6', 'py-2', 'bg-blue-600', 'text-white', 'rounded-md', 'hover:bg-blue-700', 'transition-colors', 'duration-200');
+    closeButton.onclick = () => {
+        alertBox.style.opacity = '0';
+        alertBox.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        setTimeout(() => alertBox.remove(), 300); // Remove after fade out
+    };
+
+    alertBox.appendChild(messageText);
+    alertBox.appendChild(closeButton);
+    document.body.appendChild(alertBox);
+
+    // Animate in
+    setTimeout(() => {
+        alertBox.style.opacity = '1';
+        alertBox.style.transform = 'translate(-50%, -50%) scale(1)';
+    }, 10);
+}
