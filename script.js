@@ -43,6 +43,7 @@ async function waitForServer() {
 
 async function registerIfNeeded() {
     const isValid = await checkToken();
+    console.log(isValid)
     if (!isValid) {
         // Use a custom modal or element for name input instead of prompt()
         // For now, keeping prompt as per original logic, but a custom UI is recommended.
@@ -265,7 +266,7 @@ async function checkToken() {
         }
     });
 
-    return res
+    return res.redirected
 }
 
 
