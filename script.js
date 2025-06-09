@@ -265,8 +265,7 @@ async function checkToken() {
             "Authorization": "Bearer " + playerToken
         }
     });
-
-    return res.redirected
+    return res.ok
 }
 
 
