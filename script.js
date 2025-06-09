@@ -259,6 +259,7 @@ function showFloatingText(text, x, y) {
 }
 
 async function checkToken() {
+    if (!playerToken) return false;
     const res = await fetch(`${API_URL}/token_valid`, {
         method: "GET",
         headers: {
