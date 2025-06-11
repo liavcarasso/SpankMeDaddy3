@@ -274,13 +274,18 @@ function showFloatingText(text, x, y) {
 
 async function checkToken() {
     if (!playerToken) return false;
+
     const res = await fetch(`${API_URL}/token_valid`, {
         method: "GET",
         headers: {
             "Authorization": "Bearer " + playerToken
         }
     });
-    return res.ok
+
+    if (!res.ok) return false;
+
+    const data = await res.json();
+    return data === true || data.valid === true;
 }
 
 
