@@ -285,8 +285,9 @@ async function checkToken() {
     if (!res.ok) return false;
 
     const data = await res.json();
-    return data === true || data.valid === true;
+    return data.valid === true;
 }
+
 
 
 function checkPrice(){
