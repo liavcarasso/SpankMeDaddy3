@@ -142,6 +142,7 @@ async function fetchLeaderboard() {
 
 async function fetchPlayerData() {
     if (!playerToken) return;
+
     try {
         const res = await fetch(`${API_URL}/player_data`, {
             method: "GET",
@@ -150,20 +151,23 @@ async function fetchPlayerData() {
                 "Authorization": "Bearer " + playerToken
             },
         });
+
         if (!res.ok) {
             const errorData = await res.json();
             console.error("Failed to get data:", errorData);
-            // Implement a custom message box instead of alert for better UX
-            // alert(`Error: ${errorData.detail || "Unknown error"}`);
+            return;
         }
-        } catch (err) {
+
+        const data = await res.json();
+        spankCount = data.score;
+        sps = data.sps;
+        updateDisplay();
+
+    } catch (err) {
         console.error("Network error getting data:", err);
     }
-    const data = await res.json();
-    spankCount = data.score;
-    sps = data.sps;
-    updateDisplay();
 }
+
 
 
 let actionQueue = [];
